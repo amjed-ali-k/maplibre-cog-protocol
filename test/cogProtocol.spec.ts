@@ -155,7 +155,8 @@ describe('cogProtocol', () => {
       min: 10,
       max: 20,
       isReverse: true,
-      isContinuous: true
+      isContinuous: true,
+      isTransparent: false
     }
 
     expect(mockedCogReader).toHaveBeenCalledWith('file.tif');
@@ -178,7 +179,8 @@ describe('cogProtocol', () => {
       min: 10,
       max: 20,
       isReverse: true,
-      isContinuous: true
+      isContinuous: true,
+      isTransparent: false
     }
 
     expect(mockedCogReader).toHaveBeenCalledWith('file.tif');
