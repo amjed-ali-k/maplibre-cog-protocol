@@ -65,9 +65,10 @@ const renderTile = async (url: string) => {
       const min = parseFloat(minStr),
         max = parseFloat(maxStr),
         isReverse = modifiers?.includes('-') || false,
-        isContinuous = modifiers?.includes('c') || false;
+        isContinuous = modifiers?.includes('c') || false,
+        isTransparent = modifiers?.includes('t') || false;
 
-      rgba = renderColor(rawTile, {...metadata, colorScale: { colorScheme, customColors, min, max, isReverse, isContinuous}});
+      rgba = renderColor(rawTile, {...metadata, colorScale: { colorScheme, customColors, min, max, isReverse, isContinuous, isTransparent}});
     }
   } else {
     rgba = renderPhoto(rawTile, metadata);

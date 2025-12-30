@@ -9,6 +9,7 @@ const renderColor: ImageRenderer<Options> = (data: TypedArray, {offset, scale, n
   const numBands = data.length / pixels;
   const rgba = new Uint8ClampedArray(pixels * 4);
   const interpolate = colorScale(colorScaleParams);
+  const { min, max, isTransparent } = colorScaleParams;
 
   for (let i = 0; i < pixels; i++) {
     const px = offset + data[i * numBands] * scale;
@@ -18,11 +19,19 @@ const renderColor: ImageRenderer<Options> = (data: TypedArray, {offset, scale, n
       rgba[4 * i + 2] = 0;
       rgba[4 * i + 3] = 0;
     } else {
-      const color = interpolate(px);
-      rgba[4 * i] = color[0];
-      rgba[4 * i + 1] = color[1];
-      rgba[4 * i + 2] = color[2];
-      rgba[4 * i + 3] = 255;
+      // If transparent mode is enabled and value is outside min/max range, make it transparent
+      if (isTransparent && (px < min || px > max)) {
+        rgba[4 * i] = 0;
+        rgba[4 * i + 1] = 0;
+        rgba[4 * i + 2] = 0;
+        rgba[4 * i + 3] = 0;
+      } else {
+        const color = interpolate(px);
+        rgba[4 * i] = color[0];
+        rgba[4 * i + 1] = color[1];
+        rgba[4 * i + 2] = color[2];
+        rgba[4 * i + 3] = 255;
+      }
     }
   }
   return rgba;

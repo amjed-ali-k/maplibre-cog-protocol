@@ -163,12 +163,14 @@ The syntax for the `#color` parameter is `#color:<colorScheme>,<minValue>,<maxVa
 * `<modifiers>`: Some characters representing additional configuration. We support:
   * `c` continuous color interpolation (vs discrete).
   * `-` reverse scale.
+  * `t` transparent out-of-range values. When enabled, values below `<minValue>` or above `<maxValue>` will be rendered as transparent instead of using the min/max colors from the spectrum.
 
 Some examples:
 
 * Apply discrete `CartoEarth` ramp between 1 and 100: `#color:CartoEarth,1,100`
 * Apply continuous `BrewerYlOrRd7` ramp between -1 and 1: `#color:BrewerYlOrRd7,-1,1,c`
-* Same as above, reversed (so colors go red-orange-yellow instead of yellow-orange-red): `#color:CartoEarth,-1,1,c-`.
+* Same as above, reversed (so colors go red-orange-yellow instead of yellow-orange-red): `#color:CartoEarth,-1,1,c-`
+* Apply continuous `BrewerSpectral9` ramp with transparent out-of-range values: `#color:BrewerSpectral9,1.7,1.8,ct`
 
 See other usages in [examples](examples). If you need more flexibility, use a Custom Color Function.
 

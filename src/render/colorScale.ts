@@ -333,7 +333,8 @@ export type ColorScaleParams = {
   min: number,
   max: number,
   isReverse?: boolean,
-  isContinuous?: boolean
+  isContinuous?: boolean,
+  isTransparent?: boolean
 }
 
 const colorScale = ({ colorScheme, customColors, min, max, isReverse = false, isContinuous = false }: ColorScaleParams) => {
