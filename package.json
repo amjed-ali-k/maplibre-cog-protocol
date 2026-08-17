@@ -13,6 +13,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist/types",
     "build": "rimraf dist && concurrently --names 'UMD,ESM,TYPES' 'npm run build:umd' 'npm run build:esm' 'npm run build:types'",
     "gh-publish": "rimraf examples/dist && npm run build && cp -r dist examples && gh-pages -d examples",
+    "postversion": "git push --follow-tags",
     "prepare": "husky"
   },
   "license": "MIT",

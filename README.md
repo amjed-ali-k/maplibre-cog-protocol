@@ -573,14 +573,16 @@ Breaking changes between versions are documented in [MIGRATIONS.md](MIGRATIONS.m
 ### Making a new release
 
 ```
-npm version [patch | minor | major]
+npm version [patch | minor | major]   # bumps, commits, tags, and pushes (postversion hook)
 
 npm run build
 npm publish --access public
 
-git push origin tag vX.X.X
 npm run gh-publish  # publish examples to labs.geomatico.es
 ```
+
+Pushing the tag triggers a GitHub Actions workflow that creates the GitHub Release with
+auto-generated notes from merged PRs.
 
 
 ## About Geomatico
