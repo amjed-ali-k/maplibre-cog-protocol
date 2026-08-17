@@ -1,4 +1,4 @@
-import {fromUrl, type GeoTIFF, Pool} from 'geotiff';
+import {type BlockedSourceOptions, fromUrl, type GeoTIFF, Pool, type RemoteSourceOptions} from 'geotiff';
 import QuickLRU from 'quick-lru';
 
 import type {Bbox, CogMetadata, ImageMetadata, TileIndex, TileJSON, TypedArray} from '../types';
@@ -23,7 +23,11 @@ const CogReader = (url: string) => {
     if (cachedGeoTiff) {
       return cachedGeoTiff;
     } else {
-      const geoTiff = fromUrl(url, requestHeaders ? {headers: requestHeaders} : undefined);
+      const sourceOptions: RemoteSourceOptions & BlockedSourceOptions = {
+        blockSize: 65536, // batches/caches byte ranges to cut HTTP requests; 64 kb matches the future geotiff.js default
+        ...(requestHeaders ? {headers: requestHeaders} : {}),
+      };
+      const geoTiff = fromUrl(url, sourceOptions);
       geoTiffCache.set(url, geoTiff);
       return geoTiff;
     }

@@ -114,7 +114,7 @@ describe('CogReader', () => {
 
     expect(mockedPool).toHaveBeenCalledTimes(1);
     expect(mockedFromUrl).toHaveBeenCalledTimes(1);
-    expect(mockedFromUrl).toHaveBeenCalledWith('file.tif', undefined);
+    expect(mockedFromUrl).toHaveBeenCalledWith('file.tif', {blockSize: 65536});
   });
 
 
@@ -125,7 +125,7 @@ describe('CogReader', () => {
     CogReader('file2.tif').getMetadata();
 
     expect(mockedFromUrl).toHaveBeenCalledTimes(1);
-    expect(mockedFromUrl).toHaveBeenCalledWith('file2.tif', {headers: customHeaders});
+    expect(mockedFromUrl).toHaveBeenCalledWith('file2.tif', {blockSize: 65536, headers: customHeaders});
   });
 
   test('getMetadata returns useful GeoTIFF metadata', async () => {

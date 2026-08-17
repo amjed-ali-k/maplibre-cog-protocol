@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- 
+- COG reads now use a 64KB `blockSize`, letting `geotiff` batch and cache byte ranges instead of issuing a separate HTTP range request per tile read, reducing network requests.
 
 ### Removed
 
