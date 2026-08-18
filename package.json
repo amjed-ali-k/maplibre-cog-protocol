@@ -1,5 +1,5 @@
 {
-  "name": "@geomatico/maplibre-cog-protocol",
+  "name": "@amjed-ali-k-2/maplibre-cog-protocol",
   "version": "0.10.0",
   "description": "Custom protocol to load Cloud Optimized GeoTIFFs (COG) in Maplibre GL JS",
   "scripts": {
@@ -32,6 +32,20 @@
     }
   },
   "author": "Geomatico <info@geomatico.es>",
+  "contributors": [
+    "Amjed Ali <sw-dev@skymul.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amjed-ali-k/maplibre-cog-protocol.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amjed-ali-k/maplibre-cog-protocol/issues"
+  },
+  "homepage": "https://github.com/amjed-ali-k/maplibre-cog-protocol#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@mapbox/sphericalmercator": "^2.0.2",
     "d3-scale": "^4.0.2",

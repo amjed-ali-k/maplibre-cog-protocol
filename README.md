@@ -1,5 +1,10 @@
 # MapLibre COG Protocol — Display Cloud Optimized GeoTIFFs in MapLibre GL JS
 
+> **Note:** this package (`@amjed-ali-k-2/maplibre-cog-protocol`) is a fork of
+> [geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol),
+> kept in sync with upstream and adding the `t` (transparent out-of-range values)
+> color modifier. See [Apply ColorBrewer or CARTOColor ramp to a single-band COG](#apply-colorbrewer-or-cartocolor-ramp-to-a-single-band-cog).
+
 **MapLibre COG Protocol** is an open source JavaScript library for loading and visualizing
 [Cloud Optimized GeoTIFFs](https://cogeo.org/) directly in [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/).
 
@@ -69,7 +74,7 @@ masking, and a 12 GB digital elevation model covering Catalonia at 2 m/pixel:
 ## Installation
 
 ```shell
-npm install @geomatico/maplibre-cog-protocol
+npm install @amjed-ali-k-2/maplibre-cog-protocol
 ```
 
 Or load it from a CDN with a `<script>` tag, as shown in the [vanilla HTML example](#vanilla-html--js) below.
@@ -91,7 +96,7 @@ For better quality, use always `tileSize: 256` to match the size of tiles delive
 <html lang="en">
 <head>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@^6.0.0/dist/maplibre-gl.css">
-  <script src="https://unpkg.com/@geomatico/maplibre-cog-protocol/dist/index.js"></script>
+  <script src="https://unpkg.com/@amjed-ali-k-2/maplibre-cog-protocol/dist/index.js"></script>
 </head>
 <body>
 <div id="map" style="width: 600px; height: 400px"></div>
@@ -127,11 +132,11 @@ For better quality, use always `tileSize: 256` to match the size of tiles delive
 
 ### With React Map GL
 
-`npm install @geomatico/maplibre-cog-protocol`
+`npm install @amjed-ali-k-2/maplibre-cog-protocol`
 
 ```tsx
 import maplibregl from 'maplibre-gl';
-import {cogProtocol} from '@geomatico/maplibre-cog-protocol';
+import {cogProtocol} from '@amjed-ali-k-2/maplibre-cog-protocol';
 import Map from 'react-map-gl/maplibre';
 
 maplibregl.addProtocol('cog', cogProtocol);
@@ -399,7 +404,7 @@ The color ramps used by `#color:` are also exported, so a custom color function 
   array of at least two hex colors can be given.
 
 ```javascript
-import {colorScale, setColorFunction} from '@geomatico/maplibre-cog-protocol';
+import {colorScale, setColorFunction} from '@amjed-ali-k-2/maplibre-cog-protocol';
 
 const interpolate = colorScale({colorScheme: 'BrewerRdYlBu10', min: 1, max: 7, isContinuous: true});
 
@@ -437,7 +442,7 @@ by removing and re-adding the layer. Masking relies on `OffscreenCanvas`; where 
 tiles are rendered unmasked.
 
 ```javascript
-import {setMask, clearMask} from '@geomatico/maplibre-cog-protocol';
+import {setMask, clearMask} from '@amjed-ali-k-2/maplibre-cog-protocol';
 
 const mask = {
   type: 'FeatureCollection',
@@ -489,7 +494,7 @@ The `locationValues(url, location, zoom?)` method reads pixel values for a given
 Example usage in conjunction with maplibre API to get COG values on mouse hover:
 
 ```javascript
-import {locationValues} from '@geomatico/maplibre-cog-protocol';
+import {locationValues} from '@amjed-ali-k-2/maplibre-cog-protocol';
 
 map.on('mousemove', ({lngLat}) => {
   locationValues(
@@ -503,7 +508,7 @@ map.on('mousemove', ({lngLat}) => {
 `locationValues` doesn't depend on MapLibre API or the CogProtocol, so it can be used to query raster values in applications without a map:
 
 ```javascript
-import {locationValues} from '@geomatico/maplibre-cog-protocol';
+import {locationValues} from '@amjed-ali-k-2/maplibre-cog-protocol';
 
 const url = 'https://labs.geomatico.es/maplibre-cog-protocol/data/kriging.tif';
 locationValues(url, {latitude: 41.656278, longitude: 0.501394}).then(console.log);
@@ -516,7 +521,7 @@ Use `setRequestHeaders(headers)` to add HTTP headers to the requests made to fet
 instance to read from a server requiring authentication:
 
 ```javascript
-import {setRequestHeaders} from '@geomatico/maplibre-cog-protocol';
+import {setRequestHeaders} from '@amjed-ali-k-2/maplibre-cog-protocol';
 
 setRequestHeaders({Authorization: 'Bearer <token>'});
 ```

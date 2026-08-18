@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "@geomatico/maplibre-cog-protocol",
+      "name": "@amjed-ali-k-2/maplibre-cog-protocol",
       "dependencies": {
         "@mapbox/sphericalmercator": "^2.0.2",
         "d3-scale": "^4.0.2",
