@@ -530,6 +530,48 @@ The headers are global, applying to every COG read afterwards, including `locati
 `getCogMetadata`. Because opened files are cached, call this before the COG is first requested; a
 later call won't affect files already opened.
 
+### Cache decoded source tiles
+
+Off by default. `configureTileCache({enabled: true})` turns on an in-memory, byte-bounded LRU over
+the *decoded source tiles* of every open COG, which cuts the amount of decoding a pan or zoom costs:
+
+```javascript
+import {configureTileCache, clearTileCache, getTileCacheStats} from '@amjed-ali-k-2/maplibre-cog-protocol';
+
+configureTileCache({enabled: true, maxBytes: 256 * 1024 * 1024}); // 256 MB is the default budget
+
+getTileCacheStats(); // {entries, bytes, hits, misses}
+clearTileCache();    // drop everything and reset the counters
+```
+
+Why it helps: a COG's overview levels are usually not aligned with the web mercator tile grid, so a
+single 256×256 map tile straddles several source tiles, and neighbouring map tiles keep re-decoding
+the same ones. Decoding is the expensive part — in the browser each one is a
+`Blob` → `createImageBitmap` → `drawImage` → `getImageData` round trip — and it is not fixed by
+caching bytes, since `geotiff.js` already coalesces the byte ranges into a handful of requests.
+
+Measured over a full-extent pan of two 3857 COGs, counting decodes of source tiles per map tile
+delivered:
+
+| COG                                    | zoom | default | cache enabled |
+|----------------------------------------|------|---------|---------------|
+| ortho (8-bit RGB, JPEG)                | 19   | 1.71    | 0.21          |
+| ortho (8-bit RGB, JPEG)                | 20   | 1.78    | 0.17          |
+| DSM (Float32, Deflate + predictor)     | 19   | 3.18    | 0.86          |
+| DSM (Float32, Deflate + predictor)     | 20   | 3.69    | 1.00          |
+
+Notes:
+
+* The cache is global, shared by every open COG, and `maxBytes` is one budget across all of them.
+  Resident bytes never exceed it; once the budget is reached the least recently used tiles are
+  evicted, so a budget smaller than the working set degrades gradually rather than failing. In the
+  DSM measurement above, a full viewport needed ~41 MB and a 4 MB budget still cut decodes per map
+  tile from 3.69 to 1.89.
+* Concurrent reads of the same source tile share one decode.
+* `configureTileCache({enabled: false})` releases everything the cache is holding.
+* This is separate from the caches described under [Notes](#notes), which are always on and hold
+  opened files, their metadata, and finished map tiles.
+
 
 ## Notes
 
@@ -540,6 +582,8 @@ later call won't affect files already opened.
   image available.
 * **Caching**: opened files, their metadata and the decoded tiles are cached in memory, keyed by
   URL, and expire after an hour. Requesting a tile that is already cached issues no network request.
+  Decoded *source* tiles can additionally be cached with
+  [`configureTileCache`](#cache-decoded-source-tiles), which is off by default.
 
 
 ## COG generation tips

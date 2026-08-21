@@ -3,6 +3,7 @@ import QuickLRU from 'quick-lru';
 
 import type {Bbox, CogMetadata, ImageMetadata, TileIndex, TileJSON, TypedArray} from '../types';
 import {mercatorBboxToGeographicBbox, tileIndexToPixelWindow, zoomFromResolution} from './math';
+import {installTileCache} from './tileCache';
 
 const ONE_HOUR_IN_MILLISECONDS = 60 * 60 * 1000;
 
@@ -134,6 +135,11 @@ const CogReader = (url: string) => {
     const tiff = await getGeoTiff(url);
     const firstImage = await tiff.getImage(0);
     const selectedImage = await tiff.getImage(bestImage.index);
+
+    // getImage() hands back a fresh instance every call, so geotiff's own per-image cache can never
+    // hit here. This re-serves decoded source tiles from a module-scope, byte-bounded LRU instead.
+    // No-op unless the caller opted in via configureTileCache().
+    installTileCache(selectedImage, `${url}|${bestImage.index}`);
 
     const window = tileIndexToPixelWindow(
       {x, y, z},

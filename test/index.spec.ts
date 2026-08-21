@@ -1,6 +1,6 @@
 import {test, expect} from 'vitest';
 
-import {cogProtocol, colorScale, colorSchemeNames, setColorFunction, setMask, clearMask, locationValues} from '../src/index';
+import {cogProtocol, colorScale, colorSchemeNames, setColorFunction, setMask, clearMask, locationValues, configureTileCache, clearTileCache, getTileCacheStats} from '../src/index';
 
 describe('index', () => {
   test('exports public API', () => {
@@ -11,5 +11,8 @@ describe('index', () => {
     expect(setMask).toBeDefined();
     expect(clearMask).toBeDefined();
     expect(locationValues).toBeDefined();
+    expect(configureTileCache).toBeDefined();
+    expect(clearTileCache).toBeDefined();
+    expect(getTileCacheStats).toBeDefined();
   })
 });

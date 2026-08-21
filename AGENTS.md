@@ -56,7 +56,12 @@ Two layers under `src/`:
   zoom is the closest at-or-above the requested `z` (falling back to the highest available below),
   converts the XYZ tile to a pixel window in that image (`read/math.ts`), and resamples to 256×256.
   The same function reads the mask band via `{mask: true}`, which filters to images with the
-  `NewSubfileType` mask bit and returns `null` when the COG has none.
+  `NewSubfileType` mask bit and returns `null` when the COG has none. `read/tileCache.ts` is a
+  separate, opt-in, byte-bounded LRU one level down, over *decoded source tiles*: it is keyed
+  `url|imageIndex|x/y/sample` at module scope because `getImage()` returns a fresh `GeoTIFFImage`
+  on every call, which defeats both `fromUrl(url, {cache: true})` (whose `cache` option never
+  reaches the constructor) and geotiff's own per-image `tiles` array. `getRawTile` wires it in with
+  `installTileCache`, a no-op unless the caller opted in via `configureTileCache`.
 - **`render/`** — pure pixel transforms, no I/O. Each renderer has the shape
   `ImageRenderer<Options> = (data: TypedArray, options) => Uint8ClampedArray`, taking an
   interleaved raster and returning RGBA.
