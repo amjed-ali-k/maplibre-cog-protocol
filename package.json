@@ -1,6 +1,6 @@
 {
   "name": "@amjed-ali-k-2/maplibre-cog-protocol",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Custom protocol to load Cloud Optimized GeoTIFFs (COG) in Maplibre GL JS",
   "scripts": {
     "watch:src": "rimraf dist && rollup -c rollup.config.mjs --environment DEV --watch",
@@ -11,8 +11,9 @@
     "build:umd": "rollup -c rollup.config.mjs",
     "build:esm": "tsc --outDir dist/esm",
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist/types",
-    "build": "rimraf dist && concurrently --names 'UMD,ESM,TYPES' 'npm run build:umd' 'npm run build:esm' 'npm run build:types'",
+    "build": "rimraf dist && concurrently --names \"UMD,ESM,TYPES\" \"npm run build:umd\" \"npm run build:esm\" \"npm run build:types\"",
     "gh-publish": "rimraf examples/dist && npm run build && cp -r dist examples && gh-pages -d examples",
+    "prepublishOnly": "npm run build",
     "postversion": "git push --follow-tags",
     "prepare": "husky"
   },
