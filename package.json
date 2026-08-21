@@ -1,6 +1,6 @@
 {
   "name": "@amjed-ali-k-2/maplibre-cog-protocol",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Custom protocol to load Cloud Optimized GeoTIFFs (COG) in Maplibre GL JS",
   "scripts": {
     "watch:src": "rimraf dist && rollup -c rollup.config.mjs --environment DEV --watch",

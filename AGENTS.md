@@ -4,10 +4,11 @@ Guidance for AI coding agents working in this repository.
 
 ## What this is
 
-`@geomatico/maplibre-cog-protocol` registers a `cog://` custom protocol with MapLibre GL JS so a
-Cloud Optimized GeoTIFF can be used directly as a `raster` or `raster-dem` source, with no tile
-server. The library fetches byte ranges of the remote GeoTIFF, decodes the pixels for the requested
-XYZ tile, converts them to RGBA, and hands MapLibre an `ImageBitmap`.
+`@amjed-ali-k-2/maplibre-cog-protocol` — a fork of `@geomatico/maplibre-cog-protocol` — registers a
+`cog://` custom protocol with MapLibre GL JS so a Cloud Optimized GeoTIFF can be used directly as a
+`raster` or `raster-dem` source, with no tile server. The library fetches byte ranges of the remote
+GeoTIFF, decodes the pixels for the requested XYZ tile, converts them to RGBA, and hands MapLibre an
+`ImageBitmap`.
 
 Hard constraint: **COGs must be in EPSG:3857 (Web Mercator)**. There is no reprojection; a COG with
 any other `ProjectedCSTypeGeoKey` throws in `getMetadata`.
@@ -56,7 +57,12 @@ Two layers under `src/`:
   zoom is the closest at-or-above the requested `z` (falling back to the highest available below),
   converts the XYZ tile to a pixel window in that image (`read/math.ts`), and resamples to 256×256.
   The same function reads the mask band via `{mask: true}`, which filters to images with the
-  `NewSubfileType` mask bit and returns `null` when the COG has none.
+  `NewSubfileType` mask bit and returns `null` when the COG has none. `read/tileCache.ts` is a
+  separate, opt-in, byte-bounded LRU one level down, over *decoded source tiles*: it is keyed
+  `url|imageIndex|x/y/sample` at module scope because `getImage()` returns a fresh `GeoTIFFImage`
+  on every call, which defeats both `fromUrl(url, {cache: true})` (whose `cache` option never
+  reaches the constructor) and geotiff's own per-image `tiles` array. `getRawTile` wires it in with
+  `installTileCache`, a no-op unless the caller opted in via `configureTileCache`.
 - **`render/`** — pure pixel transforms, no I/O. Each renderer has the shape
   `ImageRenderer<Options> = (data: TypedArray, options) => Uint8ClampedArray`, taking an
   interleaved raster and returning RGBA.

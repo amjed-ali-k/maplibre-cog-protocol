@@ -1,9 +1,8 @@
 # MapLibre COG Protocol — Display Cloud Optimized GeoTIFFs in MapLibre GL JS
 
 > **Note:** this package (`@amjed-ali-k-2/maplibre-cog-protocol`) is a fork of
-> [geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol),
-> kept in sync with upstream and adding the `t` (transparent out-of-range values)
-> color modifier. See [Apply ColorBrewer or CARTOColor ramp to a single-band COG](#apply-colorbrewer-or-cartocolor-ramp-to-a-single-band-cog).
+> [geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol), kept in
+> sync with upstream. See [What this fork adds](#what-this-fork-adds).
 
 **MapLibre COG Protocol** is an open source JavaScript library for loading and visualizing
 [Cloud Optimized GeoTIFFs](https://cogeo.org/) directly in [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/).
@@ -71,13 +70,48 @@ masking, and a 12 GB digital elevation model covering Catalonia at 2 m/pixel:
 * [Serverless rasters in MapLibre: the COG protocol extension](https://geomatico.es/en/serverless-rasters-in-maplibre-the-cog-protocol-extension/) — article explaining the approach and why we built it.
 
 
+## What this fork adds
+
+`@amjed-ali-k-2/maplibre-cog-protocol` tracks
+[geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol) and is merged
+with upstream as it releases. Everything upstream does works here unchanged; the differences are:
+
+* **Transparent out-of-range values** — the `t` modifier on `#color:` makes values outside the
+  `min`/`max` range transparent instead of clamping them to the end colors of the ramp. See
+  [Apply ColorBrewer or CARTOColor ramp to a single-band COG](#apply-colorbrewer-or-cartocolor-ramp-to-a-single-band-cog).
+
+* **Opt-in decoded-tile cache** — [`configureTileCache`](#cache-decoded-source-tiles). A COG's
+  overview levels are rarely aligned with the web mercator tile grid, so one 256×256 map tile
+  straddles several source tiles and neighbouring map tiles keep re-decoding the same ones. Measured
+  over a full-extent pan, that costs 3.69 decodes per map tile on a Float32 DSM at z20 and 1.78 on
+  an 8-bit RGB ortho; with the cache enabled it drops to 1.00 and 0.17. Decoding is the expensive
+  part — in the browser each one is a `Blob` → `createImageBitmap` → `drawImage` → `getImageData`
+  round trip — and caching bytes does not help, because `geotiff.js` already coalesces the byte
+  ranges into a handful of requests. Off by default, so enabling it is your call.
+
+* **Transient read failures recover** — the caches store the in-flight promise so concurrent callers
+  share one request. Upstream keeps that promise even when it rejects, so a single reset connection
+  leaves that tile blank for the full hour the cache entry lives, and retrying returns the same
+  cached rejection. Here a rejected entry is dropped, so the next request re-reads.
+
+Versions follow this fork's own release history and do not line up with upstream's.
+
+
 ## Installation
 
 ```shell
 npm install @amjed-ali-k-2/maplibre-cog-protocol
 ```
 
-Or load it from a CDN with a `<script>` tag, as shown in the [vanilla HTML example](#vanilla-html--js) below.
+Or load it from a CDN with a `<script>` tag, pinned to a version:
+
+```html
+<script src="https://unpkg.com/@amjed-ali-k-2/maplibre-cog-protocol@0.11.0/dist/index.js"></script>
+```
+
+Dropping `@0.11.0` always serves the latest release, which is convenient for a quick try but means
+your page changes when the package does. The [vanilla HTML example](#vanilla-html--js) below uses
+the unpinned form for brevity.
 
 
 ## Requirements
@@ -530,6 +564,48 @@ The headers are global, applying to every COG read afterwards, including `locati
 `getCogMetadata`. Because opened files are cached, call this before the COG is first requested; a
 later call won't affect files already opened.
 
+### Cache decoded source tiles
+
+Off by default. `configureTileCache({enabled: true})` turns on an in-memory, byte-bounded LRU over
+the *decoded source tiles* of every open COG, which cuts the amount of decoding a pan or zoom costs:
+
+```javascript
+import {configureTileCache, clearTileCache, getTileCacheStats} from '@amjed-ali-k-2/maplibre-cog-protocol';
+
+configureTileCache({enabled: true, maxBytes: 256 * 1024 * 1024}); // 256 MB is the default budget
+
+getTileCacheStats(); // {entries, bytes, hits, misses}
+clearTileCache();    // drop everything and reset the counters
+```
+
+Why it helps: a COG's overview levels are usually not aligned with the web mercator tile grid, so a
+single 256×256 map tile straddles several source tiles, and neighbouring map tiles keep re-decoding
+the same ones. Decoding is the expensive part — in the browser each one is a
+`Blob` → `createImageBitmap` → `drawImage` → `getImageData` round trip — and it is not fixed by
+caching bytes, since `geotiff.js` already coalesces the byte ranges into a handful of requests.
+
+Measured over a full-extent pan of two 3857 COGs, counting decodes of source tiles per map tile
+delivered:
+
+| COG                                    | zoom | default | cache enabled |
+|----------------------------------------|------|---------|---------------|
+| ortho (8-bit RGB, JPEG)                | 19   | 1.71    | 0.21          |
+| ortho (8-bit RGB, JPEG)                | 20   | 1.78    | 0.17          |
+| DSM (Float32, Deflate + predictor)     | 19   | 3.18    | 0.86          |
+| DSM (Float32, Deflate + predictor)     | 20   | 3.69    | 1.00          |
+
+Notes:
+
+* The cache is global, shared by every open COG, and `maxBytes` is one budget across all of them.
+  Resident bytes never exceed it; once the budget is reached the least recently used tiles are
+  evicted, so a budget smaller than the working set degrades gradually rather than failing. In the
+  DSM measurement above, a full viewport needed ~41 MB and a 4 MB budget still cut decodes per map
+  tile from 3.69 to 1.89.
+* Concurrent reads of the same source tile share one decode.
+* `configureTileCache({enabled: false})` releases everything the cache is holding.
+* This is separate from the caches described under [Notes](#notes), which are always on and hold
+  opened files, their metadata, and finished map tiles.
+
 
 ## Notes
 
@@ -540,6 +616,11 @@ later call won't affect files already opened.
   image available.
 * **Caching**: opened files, their metadata and the decoded tiles are cached in memory, keyed by
   URL, and expire after an hour. Requesting a tile that is already cached issues no network request.
+  Decoded *source* tiles can additionally be cached with
+  [`configureTileCache`](#cache-decoded-source-tiles), which is off by default.
+  The decoded map tile cache is bounded by entry count (1024), not by bytes, so its footprint grows
+  with the sample count and bit depth of the COGs in use: roughly 190 KB per entry for 8-bit RGB and
+  260 KB for single-band Float32.
 
 
 ## COG generation tips
