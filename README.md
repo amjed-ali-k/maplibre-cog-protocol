@@ -1,9 +1,8 @@
 # MapLibre COG Protocol — Display Cloud Optimized GeoTIFFs in MapLibre GL JS
 
 > **Note:** this package (`@amjed-ali-k-2/maplibre-cog-protocol`) is a fork of
-> [geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol),
-> kept in sync with upstream and adding the `t` (transparent out-of-range values)
-> color modifier. See [Apply ColorBrewer or CARTOColor ramp to a single-band COG](#apply-colorbrewer-or-cartocolor-ramp-to-a-single-band-cog).
+> [geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol), kept in
+> sync with upstream. See [What this fork adds](#what-this-fork-adds).
 
 **MapLibre COG Protocol** is an open source JavaScript library for loading and visualizing
 [Cloud Optimized GeoTIFFs](https://cogeo.org/) directly in [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/).
@@ -71,13 +70,48 @@ masking, and a 12 GB digital elevation model covering Catalonia at 2 m/pixel:
 * [Serverless rasters in MapLibre: the COG protocol extension](https://geomatico.es/en/serverless-rasters-in-maplibre-the-cog-protocol-extension/) — article explaining the approach and why we built it.
 
 
+## What this fork adds
+
+`@amjed-ali-k-2/maplibre-cog-protocol` tracks
+[geomatico/maplibre-cog-protocol](https://github.com/geomatico/maplibre-cog-protocol) and is merged
+with upstream as it releases. Everything upstream does works here unchanged; the differences are:
+
+* **Transparent out-of-range values** — the `t` modifier on `#color:` makes values outside the
+  `min`/`max` range transparent instead of clamping them to the end colors of the ramp. See
+  [Apply ColorBrewer or CARTOColor ramp to a single-band COG](#apply-colorbrewer-or-cartocolor-ramp-to-a-single-band-cog).
+
+* **Opt-in decoded-tile cache** — [`configureTileCache`](#cache-decoded-source-tiles). A COG's
+  overview levels are rarely aligned with the web mercator tile grid, so one 256×256 map tile
+  straddles several source tiles and neighbouring map tiles keep re-decoding the same ones. Measured
+  over a full-extent pan, that costs 3.69 decodes per map tile on a Float32 DSM at z20 and 1.78 on
+  an 8-bit RGB ortho; with the cache enabled it drops to 1.00 and 0.17. Decoding is the expensive
+  part — in the browser each one is a `Blob` → `createImageBitmap` → `drawImage` → `getImageData`
+  round trip — and caching bytes does not help, because `geotiff.js` already coalesces the byte
+  ranges into a handful of requests. Off by default, so enabling it is your call.
+
+* **Transient read failures recover** — the caches store the in-flight promise so concurrent callers
+  share one request. Upstream keeps that promise even when it rejects, so a single reset connection
+  leaves that tile blank for the full hour the cache entry lives, and retrying returns the same
+  cached rejection. Here a rejected entry is dropped, so the next request re-reads.
+
+Versions follow this fork's own release history and do not line up with upstream's.
+
+
 ## Installation
 
 ```shell
 npm install @amjed-ali-k-2/maplibre-cog-protocol
 ```
 
-Or load it from a CDN with a `<script>` tag, as shown in the [vanilla HTML example](#vanilla-html--js) below.
+Or load it from a CDN with a `<script>` tag, pinned to a version:
+
+```html
+<script src="https://unpkg.com/@amjed-ali-k-2/maplibre-cog-protocol@0.11.0/dist/index.js"></script>
+```
+
+Dropping `@0.11.0` always serves the latest release, which is convenient for a quick try but means
+your page changes when the package does. The [vanilla HTML example](#vanilla-html--js) below uses
+the unpinned form for brevity.
 
 
 ## Requirements

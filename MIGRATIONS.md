@@ -9,7 +9,7 @@ The ability to provide a custom array of colors as URL hash `#color:["#ffeda0","
 For example, `#color:["#ffeda0","#feb24c","#f03b20"],1.7,1.8` can be implemented using `setColorFunction` and a d3 interpolator:
 
 ```javascript
-import {setColorFunction} from '@geomatico/maplibre-cog-protocol';
+import {setColorFunction} from '@amjed-ali-k-2/maplibre-cog-protocol';
 import {scaleThreshold} from 'd3-scale';
 
 // Color ramp specification

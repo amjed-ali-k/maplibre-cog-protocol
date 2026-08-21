@@ -4,10 +4,11 @@ Guidance for AI coding agents working in this repository.
 
 ## What this is
 
-`@geomatico/maplibre-cog-protocol` registers a `cog://` custom protocol with MapLibre GL JS so a
-Cloud Optimized GeoTIFF can be used directly as a `raster` or `raster-dem` source, with no tile
-server. The library fetches byte ranges of the remote GeoTIFF, decodes the pixels for the requested
-XYZ tile, converts them to RGBA, and hands MapLibre an `ImageBitmap`.
+`@amjed-ali-k-2/maplibre-cog-protocol` — a fork of `@geomatico/maplibre-cog-protocol` — registers a
+`cog://` custom protocol with MapLibre GL JS so a Cloud Optimized GeoTIFF can be used directly as a
+`raster` or `raster-dem` source, with no tile server. The library fetches byte ranges of the remote
+GeoTIFF, decodes the pixels for the requested XYZ tile, converts them to RGBA, and hands MapLibre an
+`ImageBitmap`.
 
 Hard constraint: **COGs must be in EPSG:3857 (Web Mercator)**. There is no reprojection; a COG with
 any other `ProjectedCSTypeGeoKey` throws in `getMetadata`.
