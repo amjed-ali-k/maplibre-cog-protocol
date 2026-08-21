@@ -14,6 +14,23 @@ const geoTiffCache = new QuickLRU<string, Promise<GeoTIFF>>({maxSize: 16, maxAge
 const metadataCache = new QuickLRU<string, Promise<CogMetadata>>({maxSize: 16, maxAge: ONE_HOUR_IN_MILLISECONDS});
 const tileCache = new QuickLRU<string, Promise<TypedArray>>({maxSize: 1024, maxAge: ONE_HOUR_IN_MILLISECONDS});
 
+/**
+ * Caches a pending promise so concurrent callers share one request, but drops it again if it
+ * rejects. Without this a single transient failure — an aborted fetch, a reset connection — would be
+ * replayed to every later caller for the full `maxAge`, so that file or tile could never recover
+ * without a page reload.
+ */
+const cacheWhileFulfilled = <T>(cache: QuickLRU<string, Promise<T>>, key: string, value: Promise<T>): Promise<T> => {
+  cache.set(key, value);
+  value.catch(() => {
+    // peek, not get: a failure should not promote whatever currently holds the key.
+    if (cache.peek(key) === value) {
+      cache.delete(key);
+    }
+  });
+  return value;
+};
+
 const CogReader = (url: string) => {
   if (pool === undefined) {
     pool = new Pool();
@@ -28,9 +45,7 @@ const CogReader = (url: string) => {
         blockSize: 65536, // batches/caches byte ranges to cut HTTP requests; 64 kb matches the future geotiff.js default
         ...(requestHeaders ? {headers: requestHeaders} : {}),
       };
-      const geoTiff = fromUrl(url, sourceOptions);
-      geoTiffCache.set(url, geoTiff);
-      return geoTiff;
+      return cacheWhileFulfilled(geoTiffCache, url, fromUrl(url, sourceOptions));
     }
   };
 
@@ -158,8 +173,7 @@ const CogReader = (url: string) => {
       fillValue,
     }) as Promise<TypedArray>; // interleaved ReadRasterResult is always a single TypedArray
 
-    tileCache.set(cacheKey, tile);
-    return tile;
+    return cacheWhileFulfilled(tileCache, cacheKey, tile);
   }
 
   return {getTilejson, getMetadata, getRawTile};

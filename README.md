@@ -584,6 +584,9 @@ Notes:
   URL, and expire after an hour. Requesting a tile that is already cached issues no network request.
   Decoded *source* tiles can additionally be cached with
   [`configureTileCache`](#cache-decoded-source-tiles), which is off by default.
+  The decoded map tile cache is bounded by entry count (1024), not by bytes, so its footprint grows
+  with the sample count and bit depth of the COGs in use: roughly 190 KB per entry for 8-bit RGB and
+  260 KB for single-band Float32.
 
 
 ## COG generation tips
